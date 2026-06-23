@@ -1,225 +1,153 @@
-# Test Repository: Agent Skills Management Guide
+# GitHub / GitLab Skills Catalog 管理指南
 
-This package is designed for the test repository:
+本仓库将 GitHub 或 GitLab 作为 Skill Catalog：创作者在 `skills/` 中维护 Skill 源文件，仓库管理者通过 PR/MR 与 CI 管理发布，终端用户通过 `npx skills add` 安装到 AI Agent。
 
-```text
-/Users/bytedance/Documents/github/translation-agent
-```
-
-If your active test repository has moved, replace that path in the commands below.
-
-## 1. Package Layout
+本仓库当前地址：
 
 ```text
-translation-agent/
-├── skills/                                      # Source of truth: commit these files
-│   ├── technical-doc-translation/
-│   │   ├── SKILL.md
-│   │   ├── references/translation-rules.md
-│   │   └── assets/translation-output-template.md
-│   └── markdown-translation-change-review/
-│       ├── SKILL.md
-│       └── scripts/check_translation_trigger.py
-├── scripts/
-│   └── validate_skills.py
-├── examples/
-│   └── translation-trigger/
-├── .github/workflows/
-│   └── validate-agent-skills.yml
-└── SKILLS_MANAGEMENT.md
+https://github.com/EcaleD/skill-management-repo-test
 ```
 
-Keep author-maintained Skill source files under `skills/`.
+## 1. 目录与命名规则
 
-Do **not** use `.agents/skills/` as the source directory for this repository package. `npx skills` installs project-level Skills into an agent-facing location such as `./.agents/skills/`; keeping your published source under `skills/` avoids source/installation overlap during local tests.
+统一采用两级 Catalog 目录：
 
-## 2. Add the Files to the Test Repository
+```text
+skills/<产品线或能力域>/<skill-name>/SKILL.md
+```
 
-After downloading and extracting this starter package:
+当前示例：
+
+```text
+skills/
+└── docs-platform/
+    ├── technical-doc-translation/
+    │   ├── SKILL.md
+    │   ├── references/
+    │   └── assets/
+    └── markdown-translation-change-review/
+        ├── SKILL.md
+        └── scripts/
+```
+
+规则：
+
+- 一级目录是产品线或共享能力域，例如 `docs-platform`、`modelark`、`seedance`、`common`。
+- 二级目录是一个可独立安装的 Skill。
+- `SKILL.md` frontmatter 中的 `name` 必须等于二级目录名。
+- Skill 名必须在整个仓库内唯一，使用小写字母、数字和连字符。
+- `references/`、`scripts/`、`assets/` 都归属到具体 Skill，不应放在产品线目录根部。
+- 不要在 `skills/` 下再嵌套第三层产品目录；标准布局应保持为 `skills/<category>/<skill-name>/SKILL.md`。
+
+## 2. Skill 创作者工作流
+
+### 2.1 新建或修改 Skill
+
+创建分支：
 
 ```bash
-cd /Users/bytedance/Documents/github/translation-agent
-
-# Extract the archive content into the repository root.
-unzip -o ~/Downloads/translation-agent-skills-starter.zip
-
-# Review the files before committing.
-git status
-git diff -- skills scripts examples .github SKILLS_MANAGEMENT.md
+git checkout main
+git pull --ff-only
+git checkout -b feat/docs-platform-new-skill
 ```
 
-If your repository already has a workflow with the same name, merge the `validate-agent-skills.yml` job manually instead of overwriting it.
+以新增 ModelArk Skill 为例：
 
-Add generated local agent-install directories to your existing `.gitignore`:
-
-```gitignore
-# Local copies or symlinks created while testing with npx skills
-/.agents/skills/
-/.codex/skills/
-/.claude/skills/
-/.cursor/skills/
+```bash
+mkdir -p skills/modelark/ark-api-integration/{references,scripts,assets}
 ```
 
-## 3. Validate the Two Source Skills
+最小 `SKILL.md`：
 
-From the repository root:
+```md
+---
+name: ark-api-integration
+description: Build and troubleshoot ModelArk API integrations. Use when users ask about authentication, SDK initialization, request payloads, Responses API, or production integration patterns.
+---
+
+# ModelArk API Integration
+
+## Workflow
+
+1. Identify the API operation and SDK language.
+2. Confirm authentication and endpoint requirements.
+3. Provide a minimal runnable example.
+4. Validate error handling and secret management.
+```
+
+### 2.2 本地验证
 
 ```bash
 python3 scripts/validate_skills.py
 npx skills add . --list
 ```
 
-Expected discovered Skills:
-
-```text
-technical-doc-translation
-markdown-translation-change-review
-```
-
-The first command validates basic frontmatter and naming. The second asks the Skills CLI to discover Skills in this repository without installing them.
-
-## 4. Test Without Installing
-
-Use `skills use` to provide the Skill to a supported coding agent only for the current task:
+本地安装到 TRAE 项目进行持久化测试：
 
 ```bash
-npx skills use .   --skill technical-doc-translation   --agent codex
+npx skills add . \
+  --skill technical-doc-translation \
+  --agent trae \
+  --copy \
+  --yes
 ```
 
-For the second Skill:
+验证完成后删除测试安装：
 
 ```bash
-npx skills use .   --skill markdown-translation-change-review   --agent codex
+npx skills remove technical-doc-translation --agent trae
 ```
 
-This is the safest author workflow when you are iterating rapidly because it does not create a persistent project installation.
-
-## 5. Install a Local Copy for Persistent Project Testing
-
-When you want a persistent local copy for a specific agent:
+### 2.3 提交 Pull Request / Merge Request
 
 ```bash
-npx skills add .   --skill technical-doc-translation   --agent codex   --copy   --yes
-
-npx skills add .   --skill markdown-translation-change-review   --agent codex   --copy   --yes
+git add skills scripts README.md SKILLS_MANAGEMENT.md MANIFEST.json .github
+git commit -m "feat(skills): add docs platform skill"
+git push -u origin feat/docs-platform-new-skill
 ```
 
-`--copy` creates an independent local copy. Do not edit that installed copy; edit the source under `skills/`, then rerun the install command after changes.
+在 GitHub 创建 PR，或在 GitLab 创建 MR。PR/MR 描述应包含：
 
-Inspect installed Skills:
+- Skill 的名称和所属产品线。
+- 新增或修改的触发场景。
+- 是否新增可执行脚本、网络访问或敏感操作。
+- 本地验证命令与结果。
 
-```bash
-npx skills list
-npx skills ls -a codex
-```
+## 3. 仓库管理者工作流
 
-Remove local test installations:
+### 3.1 审查范围
 
-```bash
-npx skills remove technical-doc-translation --agent codex
-npx skills remove markdown-translation-change-review --agent codex
-```
+仓库管理者应检查：
 
-## 6. Run the Change-Review Example
+1. 目录符合 `skills/<category>/<skill-name>/SKILL.md`。
+2. `name` 与二级目录名称一致，且不与现有 Skill 重名。
+3. `description` 能清楚描述能力和触发场景。
+4. 详细文档在 `references/`，确定性操作在 `scripts/`，模板在 `assets/`。
+5. 新增或修改脚本不存在凭据泄露、破坏性命令或未经说明的网络上传行为。
+6. README、MANIFEST、示例命令和路径已同步更新。
 
-A substantive body-content change should require translation:
+### 3.2 CI 校验
 
-```bash
-python3 skills/markdown-translation-change-review/scripts/check_translation_trigger.py   --baseline examples/translation-trigger/baseline.md   --updated examples/translation-trigger/updated-content-change.md   --english examples/translation-trigger/english.md
-```
-
-A frontmatter-only change should not require translation:
+本仓库的 GitHub Actions workflow 会在 PR、main 分支 push 和手动触发时运行：
 
 ```bash
-python3 skills/markdown-translation-change-review/scripts/check_translation_trigger.py   --baseline examples/translation-trigger/baseline.md   --updated examples/translation-trigger/updated-frontmatter-only.md   --english examples/translation-trigger/english.md
-```
-
-A new source document requires translation:
-
-```bash
-python3 skills/markdown-translation-change-review/scripts/check_translation_trigger.py   --updated examples/translation-trigger/updated-content-change.md
-```
-
-The script emits a JSON decision with `translation_required`, a machine-readable `reason`, and a short changed-lines preview.
-
-## 7. Day-to-Day Author Workflow
-
-```bash
-cd /Users/bytedance/Documents/github/translation-agent
-
-# 1. Edit the source-of-truth files.
-code skills/technical-doc-translation/SKILL.md
-code skills/markdown-translation-change-review/SKILL.md
-
-# 2. Validate the package.
 python3 scripts/validate_skills.py
 npx skills add . --list
-
-# 3. Try one Skill without a persistent installation.
-npx skills use . --skill technical-doc-translation --agent codex
-
-# 4. Commit only source and supporting files.
-git add skills scripts examples .github/workflows/validate-agent-skills.yml SKILLS_MANAGEMENT.md
-git commit -m "feat(skills): refine translation workflow skills"
-git push
 ```
 
-## 8. Publish the Repository for Other Users
+CI 应阻止以下问题进入 `main`：
 
-After pushing the repository to GitHub or GitLab, users can install by repository URL or GitHub shorthand.
+- 错误目录层级。
+- 缺少 `name` 或 `description`。
+- Skill 名与目录名不一致。
+- 重复 Skill 名。
+- Skills CLI 无法发现 catalog 中的 Skill。
 
-GitHub:
+### 3.3 合并与发布
 
-```bash
-npx skills add YOUR_GITHUB_OWNER/translation-agent   --skill technical-doc-translation   --agent codex   --yes
-```
+合并前确认 CI 通过，然后合并到 `main`。
 
-GitLab:
-
-```bash
-npx skills add https://gitlab.com/YOUR_NAMESPACE/translation-agent   --skill markdown-translation-change-review   --agent codex   --yes
-```
-
-Install both Skills in one command:
-
-```bash
-npx skills add YOUR_GITHUB_OWNER/translation-agent   --skill technical-doc-translation   --skill markdown-translation-change-review   --agent codex   --yes
-```
-
-## 9. Use `npx skills` as a Consumer
-
-```bash
-# Discover installable Skills in this repository.
-npx skills add YOUR_GITHUB_OWNER/translation-agent --list
-
-# Install a project-level Skill. Project scope is the default.
-npx skills add YOUR_GITHUB_OWNER/translation-agent   --skill technical-doc-translation   --agent codex   --yes
-
-# Install a global personal Skill.
-npx skills add YOUR_GITHUB_OWNER/translation-agent   --skill technical-doc-translation   --agent codex   --global   --yes
-
-# List project and global installs.
-npx skills list
-npx skills ls -g
-
-# Check for updates.
-npx skills check
-
-# Update a single installed Skill in the current project.
-npx skills update technical-doc-translation --project --yes
-
-# Update all project-level installed Skills.
-npx skills update --project --yes
-
-# Remove a project-level Skill.
-npx skills remove technical-doc-translation --agent codex
-```
-
-For published consumers, use `npx skills update` to refresh Skills already installed from your repository. When you add a **new** Skill to the repository, consumers should rerun `npx skills add <repo> --skill <new-skill>` because an update refreshes installed items rather than necessarily installing newly added Skills.
-
-## 10. Release Procedure
-
-Use Git tags to make a published version easy to identify:
+需要版本记录时，在 `main` 上执行：
 
 ```bash
 git checkout main
@@ -228,19 +156,102 @@ git pull --ff-only
 python3 scripts/validate_skills.py
 npx skills add . --list
 
-git tag -a v0.1.0 -m "Initial Agent Skills release"
-git push origin v0.1.0
+git tag -a v0.2.0 -m "Organize skills by product line"
+git push origin v0.2.0
 ```
 
-Create a GitHub Release or GitLab Release from the tag. Keep a short changelog in the release notes:
+随后在 GitHub Release 或 GitLab Release 中记录：
 
-- Added or changed Skills.
-- Changes to triggering conditions.
-- Script behavior changes.
-- Any compatibility requirements.
+- 新增、修改或弃用的 Skill。
+- 触发条件或行为变化。
+- 脚本行为和兼容性变化。
+- 升级注意事项。
 
-## 11. Official References
+## 4. 终端消费者使用方式（TRAE）
+
+### 4.1 查看仓库中可安装的 Skill
+
+```bash
+npx skills add EcaleD/skill-management-repo-test --list
+```
+
+### 4.2 项目级安装
+
+在目标项目根目录执行：
+
+```bash
+npx skills add EcaleD/skill-management-repo-test \
+  --skill technical-doc-translation \
+  --agent trae \
+  --yes
+```
+
+项目级安装面向当前项目；TRAE 会在其项目 Skill 目录中发现已安装内容。
+
+安装翻译变更判断 Skill：
+
+```bash
+npx skills add EcaleD/skill-management-repo-test \
+  --skill markdown-translation-change-review \
+  --agent trae \
+  --yes
+```
+
+### 4.3 全局安装
+
+需要在多个 TRAE 项目复用时：
+
+```bash
+npx skills add EcaleD/skill-management-repo-test \
+  --skill technical-doc-translation \
+  --agent trae \
+  --global \
+  --yes
+```
+
+### 4.4 已安装 Skill 的管理
+
+```bash
+# 查看已安装 Skill
+npx skills list
+
+# 检查是否有上游更新
+npx skills check
+
+# 更新指定 Skill
+npx skills update technical-doc-translation
+
+# 删除 Skill
+npx skills remove technical-doc-translation --agent trae
+```
+
+新增 Skill 不会自动安装到消费者本地；消费者需要再次执行 `npx skills add <repo> --skill <new-skill>`。
+
+## 5. 当前仓库的测试命令
+
+```bash
+# 验证 catalog 结构与 YAML frontmatter
+python3 scripts/validate_skills.py
+
+# 发现当前仓库中的两个 Skill
+npx skills add . --list
+
+# 测试正文内容变化：预期 translation_required 为 true
+python3 skills/docs-platform/markdown-translation-change-review/scripts/check_translation_trigger.py \
+  --baseline examples/translation-trigger/baseline.md \
+  --updated examples/translation-trigger/updated-content-change.md \
+  --english examples/translation-trigger/english.md
+
+# 测试仅 frontmatter 变化：预期 translation_required 为 false
+python3 skills/docs-platform/markdown-translation-change-review/scripts/check_translation_trigger.py \
+  --baseline examples/translation-trigger/baseline.md \
+  --updated examples/translation-trigger/updated-frontmatter-only.md \
+  --english examples/translation-trigger/english.md
+```
+
+## 6. 参考资料
 
 - Skills CLI: https://github.com/vercel-labs/skills
-- Agent Skills specification: https://agentskills.io/specification
-- Agent Skills quickstart: https://agentskills.io/skill-creation/quickstart
+- Agent Skills Specification: https://agentskills.io/specification
+- GitHub Actions: https://docs.github.com/actions
+- GitLab CI/CD: https://docs.gitlab.com/ci/
