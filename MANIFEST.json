@@ -1,17 +1,19 @@
 {
-  "package": "translation-agent-skills-starter",
+  "package": "skill-management-repo-test",
+  "layout": "skills/<category>/<skill-name>/SKILL.md",
   "files": [
     ".github/workflows/validate-agent-skills.yml",
+    "README.md",
     "SKILLS_MANAGEMENT.md",
     "examples/translation-trigger/baseline.md",
     "examples/translation-trigger/english.md",
     "examples/translation-trigger/updated-content-change.md",
     "examples/translation-trigger/updated-frontmatter-only.md",
     "scripts/validate_skills.py",
-    "skills/markdown-translation-change-review/SKILL.md",
-    "skills/markdown-translation-change-review/scripts/check_translation_trigger.py",
-    "skills/technical-doc-translation/SKILL.md",
-    "skills/technical-doc-translation/assets/translation-output-template.md",
-    "skills/technical-doc-translation/references/translation-rules.md"
+    "skills/docs-platform/markdown-translation-change-review/SKILL.md",
+    "skills/docs-platform/markdown-translation-change-review/scripts/check_translation_trigger.py",
+    "skills/docs-platform/technical-doc-translation/SKILL.md",
+    "skills/docs-platform/technical-doc-translation/assets/translation-output-template.md",
+    "skills/docs-platform/technical-doc-translation/references/translation-rules.md"
   ]
 }
