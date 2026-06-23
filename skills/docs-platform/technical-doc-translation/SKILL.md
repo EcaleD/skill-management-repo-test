@@ -5,6 +5,7 @@ license: MIT
 compatibility: Requires read access to the source Markdown files. No network access is required.
 metadata:
   com.example.owner: docs-team
+  com.example.product-line: docs-platform
   com.example.status: example
   com.example.version: "0.1.0"
 ---

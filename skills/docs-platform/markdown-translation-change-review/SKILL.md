@@ -5,6 +5,7 @@ license: MIT
 compatibility: Requires Python 3.9+ for the bundled comparison script and read access to source and English Markdown files.
 metadata:
   com.example.owner: docs-team
+  com.example.product-line: docs-platform
   com.example.status: example
   com.example.version: "0.1.0"
 ---
@@ -38,7 +39,10 @@ Collect:
 3. Run the bundled script:
 
    ```bash
-   python3 scripts/check_translation_trigger.py      --baseline /path/to/baseline.md      --updated /path/to/updated.md      --english /path/to/docs_en/file.md
+   python3 scripts/check_translation_trigger.py \
+     --baseline /path/to/baseline.md \
+     --updated /path/to/updated.md \
+     --english /path/to/docs_en/file.md
    ```
 
 4. Read the JSON result.

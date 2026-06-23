@@ -1,0 +1,49 @@
+name: Validate Agent Skills Catalog
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/validate_skills.py"
+      - "MANIFEST.json"
+      - "README.md"
+      - "SKILLS_MANAGEMENT.md"
+      - ".github/workflows/validate-agent-skills.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "skills/**"
+      - "scripts/validate_skills.py"
+      - "MANIFEST.json"
+      - "README.md"
+      - "SKILLS_MANAGEMENT.md"
+      - ".github/workflows/validate-agent-skills.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate catalog structure and frontmatter
+        run: python3 scripts/validate_skills.py
+
+      - name: Verify Skills CLI discovery
+        run: npx --yes skills@1.5.9 add . --list
