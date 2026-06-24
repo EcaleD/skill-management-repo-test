@@ -1,119 +1,33 @@
-# Agent Skills Catalog Test Repository
+# Agent Skills Catalog
 
-This repository is a test catalog for publishing and managing reusable Agent Skills from GitHub or GitLab. It uses the `npx skills` CLI for discovery and installation.
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## Catalog layout
+A small public catalog of reusable Agent Skills for technical documentation workflows. The repository stores Skill source files in Git and lets users discover and install them with the [`npx skills`](https://github.com/vercel-labs/skills) CLI.
 
-```text
-skill-management-repo-test/
-├── skills/                                      # Published Skill source of truth
-│   └── docs-platform/                            # Product line / category
-│       ├── technical-doc-translation/            # Concrete Skill
-│       │   ├── SKILL.md
-│       │   ├── references/
-│       │   │   └── translation-rules.md
-│       │   └── assets/
-│       │       └── translation-output-template.md
-│       └── markdown-translation-change-review/  # Concrete Skill
-│           ├── SKILL.md
-│           └── scripts/
-│               └── check_translation_trigger.py
-├── scripts/
-│   └── validate_skills.py
-├── examples/
-│   └── translation-trigger/
-├── .github/workflows/
-│   └── validate-agent-skills.yml
-├── MANIFEST.json
-└── SKILLS_MANAGEMENT.md
-```
+## About
 
-The catalog follows this required structure:
+Coding agents benefit from repository-specific instructions, reliable workflows, and current domain guidance. This repository packages that context as reusable Agent Skills: each Skill is a directory containing a `SKILL.md` file and optional references, scripts, or assets.
 
-```text
-skills/<category>/<skill-name>/SKILL.md
-```
+The repository is a test catalog for learning how to create, review, publish, install, and update Skills through GitHub or GitLab.
 
-- `category` is a product line or shared capability area, such as `docs-platform`, `modelark`, `seedance`, or `common`.
-- `skill-name` is a globally unique, lowercase, hyphenated Skill identifier.
-- The `name` field in each `SKILL.md` must exactly match the `skill-name` directory.
-- Keep reusable references, scripts, and assets inside the owning Skill directory.
+## Skills in this repository
 
-Do not use `.trae/skills/` as this repository's source directory. That directory is an agent installation target; publishable source files belong under `skills/`.
+| Product line | Skill | Description |
+| :--- | :--- | :--- |
+| `docs-platform` | [`technical-doc-translation`](skills/docs-platform/technical-doc-translation/) | Translates or proofreads Chinese Markdown technical documentation while preserving code blocks, URLs, frontmatter, HTML, API identifiers, and Markdown structure. |
+| `docs-platform` | [`markdown-translation-change-review`](skills/docs-platform/markdown-translation-change-review/) | Determines whether a change to Chinese Markdown documentation should trigger an English translation update. |
 
-## Included Skills
+## Installation
 
-| Product line | Skill | Purpose |
-|---|---|---|
-| `docs-platform` | `technical-doc-translation` | Translate or proofread Chinese Markdown technical documentation while preserving code, URLs, frontmatter, and Markdown structure. |
-| `docs-platform` | `markdown-translation-change-review` | Decide whether a Chinese Markdown change should trigger an English translation update. |
+The examples below use [TRAE](https://www.trae.ai/) as the target agent. Replace `trae` with another supported agent name when appropriate.
 
-## Repository author quick start
-
-Run these commands from the repository root:
-
-```bash
-# Validate the catalog's folder structure and frontmatter.
-python3 scripts/validate_skills.py
-
-# Ask Skills CLI to discover Skills without installing them.
-npx skills add . --list
-```
-
-Expected discovered Skills:
-
-```text
-technical-doc-translation
-markdown-translation-change-review
-```
-
-Test a persistent project-level installation for TRAE:
-
-```bash
-npx skills add . \
-  --skill technical-doc-translation \
-  --agent trae \
-  --copy \
-  --yes
-```
-
-`--copy` is recommended for testing because it creates a project-local installed copy. Edit files under `skills/`, not the installed copy.
-
-Remove the local test installation when finished:
-
-```bash
-npx skills remove technical-doc-translation --agent trae
-```
-
-## Run the change-review example
-
-A substantive content change should require translation:
-
-```bash
-python3 skills/docs-platform/markdown-translation-change-review/scripts/check_translation_trigger.py \
-  --baseline examples/translation-trigger/baseline.md \
-  --updated examples/translation-trigger/updated-content-change.md \
-  --english examples/translation-trigger/english.md
-```
-
-A frontmatter-only change should not require translation:
-
-```bash
-python3 skills/docs-platform/markdown-translation-change-review/scripts/check_translation_trigger.py \
-  --baseline examples/translation-trigger/baseline.md \
-  --updated examples/translation-trigger/updated-frontmatter-only.md \
-  --english examples/translation-trigger/english.md
-```
-
-## Install from GitHub
-
-Discover the published catalog:
+### Browse available Skills
 
 ```bash
 npx skills add EcaleD/skill-management-repo-test --list
 ```
 
-Install one Skill into the current TRAE project:
+### Install a Skill into the current TRAE project
 
 ```bash
 npx skills add EcaleD/skill-management-repo-test \
@@ -122,16 +36,7 @@ npx skills add EcaleD/skill-management-repo-test \
   --yes
 ```
 
-Install the translation-change review Skill:
-
-```bash
-npx skills add EcaleD/skill-management-repo-test \
-  --skill markdown-translation-change-review \
-  --agent trae \
-  --yes
-```
-
-For a personal global TRAE installation, add `--global`:
+### Install a Skill globally for TRAE
 
 ```bash
 npx skills add EcaleD/skill-management-repo-test \
@@ -141,24 +46,93 @@ npx skills add EcaleD/skill-management-repo-test \
   --yes
 ```
 
-## Add a new product line or Skill
+### Update installed Skills
 
-For a new ModelArk Skill, create:
+```bash
+# Update all project-level Skills.
+npx skills update --project --yes
 
-```text
-skills/modelark/ark-api-integration/SKILL.md
+# Update one project-level Skill.
+npx skills update technical-doc-translation --project --yes
 ```
 
-Then ensure:
+For a new Skill added to this repository, run `npx skills add <repo> --skill <skill-name>` explicitly. `update` refreshes Skills that are already installed; it does not automatically install newly added Skills.
 
-1. `name: ark-api-integration` appears in the YAML frontmatter.
-2. The `description` explains both the capability and when an agent should use it.
-3. `python3 scripts/validate_skills.py` and `npx skills add . --list` succeed.
-4. You update this README and `MANIFEST.json`.
+## Local development
 
-See [SKILLS_MANAGEMENT.md](SKILLS_MANAGEMENT.md) for the author, repository-manager, and consumer workflow.
+Clone the repository, then validate the catalog before opening a pull request:
 
-## References
+```bash
+git clone https://github.com/EcaleD/skill-management-repo-test.git
+cd skill-management-repo-test
+
+# Validate the catalog layout and required frontmatter.
+python3 scripts/validate_skills.py
+
+# Discover local Skills without installing them.
+npx skills add . --list
+```
+
+For a persistent local TRAE test, install a copied project-level Skill:
+
+```bash
+npx skills add . \
+  --skill technical-doc-translation \
+  --agent trae \
+  --copy \
+  --yes
+```
+
+Edit source files under `skills/`, not the installed copy. Remove the test installation when finished:
+
+```bash
+npx skills remove technical-doc-translation --agent trae
+```
+
+## Repository layout
+
+```text
+skills/
+└── <product-line>/
+    └── <skill-name>/
+        ├── SKILL.md
+        ├── references/  # Optional long-form guidance
+        ├── scripts/     # Optional deterministic helpers
+        └── assets/      # Optional templates and sample files
+```
+
+The catalog uses this required layout:
+
+```text
+skills/<category>/<skill-name>/SKILL.md
+```
+
+- `category` identifies a product line or shared capability area, such as `docs-platform`, `modelark`, `seedance`, or `common`.
+- `skill-name` is globally unique and uses lowercase letters, numbers, and hyphens.
+- The `name` field in `SKILL.md` must exactly match the `skill-name` directory.
+- Keep references, scripts, and assets inside the owning Skill directory.
+
+Do not use `.trae/skills/` as the repository source directory. It is an installation target for TRAE; publishable source files belong under `skills/`.
+
+## Add a new Skill
+
+1. Create a directory such as `skills/modelark/ark-api-integration/`.
+2. Add a `SKILL.md` file with required `name` and `description` frontmatter.
+3. Add optional `references/`, `scripts/`, or `assets/` only when the Skill needs them.
+4. Run `python3 scripts/validate_skills.py` and `npx skills add . --list`.
+5. Update this English README, the Chinese README, and `MANIFEST.json`.
+6. Open a pull request with the Skill purpose, trigger scenarios, risk notes, and validation result.
+
+## Governance and releases
+
+Use pull requests and CI to review every catalog change. Create Git tags and GitHub or GitLab Releases when you need stable, auditable catalog snapshots. For the complete author, repository-manager, and consumer workflow, see [SKILLS_MANAGEMENT.md](SKILLS_MANAGEMENT.md).
+
+## More information
 
 - [Skills CLI](https://github.com/vercel-labs/skills)
 - [Agent Skills specification](https://agentskills.io/specification)
+- [Repository management guide](SKILLS_MANAGEMENT.md)
+
+## Disclaimer
+
+This is a test repository for demonstrating Agent Skills catalog management. It does not provide production support or a compatibility guarantee.
