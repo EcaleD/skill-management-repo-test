@@ -7,6 +7,7 @@ on:
       - "scripts/validate_skills.py"
       - "MANIFEST.json"
       - "README.md"
+      - "README.zh-CN.md"
       - "SKILLS_MANAGEMENT.md"
       - ".github/workflows/validate-agent-skills.yml"
   push:
@@ -17,6 +18,7 @@ on:
       - "scripts/validate_skills.py"
       - "MANIFEST.json"
       - "README.md"
+      - "README.zh-CN.md"
       - "SKILLS_MANAGEMENT.md"
       - ".github/workflows/validate-agent-skills.yml"
   workflow_dispatch:
