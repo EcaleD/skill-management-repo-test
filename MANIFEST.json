@@ -4,6 +4,7 @@
   "files": [
     ".github/workflows/validate-agent-skills.yml",
     "README.md",
+    "README.zh-CN.md",
     "SKILLS_MANAGEMENT.md",
     "examples/translation-trigger/baseline.md",
     "examples/translation-trigger/english.md",
